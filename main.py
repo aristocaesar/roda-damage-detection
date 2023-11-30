@@ -20,7 +20,7 @@ def main():
     # Mulai mendeteksi dan Muat Model
     print('\nInisialisasi model pendekteksian objek ... \n')
     model = torch.hub.load('ultralytics/yolov5', 'custom',
-                           path='model/best_PT_3_32.pt', force_reload=False)
+                           path='model/best.pt', force_reload=False)
     model.eval()
 
     # Perulangan untuk membaca dan menampilkan frame
@@ -44,6 +44,12 @@ def main():
             # Destructuring array, mengambil beberapa paramater yang dibutuhkan
             xmin, ymin, xmax, ymax, confidence, class_id = map(float, det)
 
+            # Warna berdasarkan class
+            # 0, 0, 255 ( Merah ) -> berlubang
+            # 235, 229, 52 ( Biru muda ) -> retak_buaya
+            # 3, 154, 255 ( orange ) -> retak_panjang
+            color = [(0, 0, 255) , (235, 229, 52), (3, 154, 255)]
+
             # Mengubah confidance menjadi percent & mengambil lebar serta keliling box
             confidence_percent = int(confidence * 100)
             wide = xmax - xmin
@@ -51,13 +57,13 @@ def main():
             # Gambar garis horizontal kuning
             line_y = 250  # Ganti dengan posisi y garis horizontal yang diinginkan
             cv2.line(frame_with_boxes, (0, line_y), (frame_with_boxes.shape[1], line_y), color=(
-                30, 255, 255), thickness=2)
+                179, 179, 179), thickness=2)
 
             # Jika confidence lebih dari 50 maka buatkan rentacle
             if confidence_percent >= 50:
-                # Tambahkan object confidence kearray detect untuk menghithung
+                # Tambahkan object confidence kearray detect untuk menghitung
                 # jumlah yang terderteksi
-                detected.append(confidence_percent)
+                detected.append(f'{model.names[int(class_id)]} - {confidence_percent}%')
 
                 # Konversi nilai kordinat float menjadi integer
                 xmin, ymin, xmax, ymax = map(int, [xmin, ymin, xmax, ymax])
@@ -73,11 +79,11 @@ def main():
 
                 # Buat gambar untuk background informasi box
                 cv2.rectangle(frame_with_boxes, (xmin, ymin - 20),
-                              (xmax, ymin), color=(0, 0, 255), thickness=cv2.FILLED)
+                              (xmax, ymin), color=(color[int(class_id)]), thickness=cv2.FILLED)
 
                 # Buat gambar untuk box berdasarkan titik kordinat
                 cv2.rectangle(frame_with_boxes, (xmin, ymin),
-                              (xmax, ymax), color=(0, 0, 255), thickness=2)
+                              (xmax, ymax), color=(color[int(class_id)]), thickness=2)
 
                 # Buat tulisan class dan confidence yang terdeteksi
                 cv2.putText(frame_with_boxes, f'{model.names[int(class_id)]} {confidence_percent}%', (

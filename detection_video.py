@@ -54,16 +54,21 @@ if os.path.exists(video_path.strip()):
                 # Destructuring array, mengambil beberapa paramater yang dibutuhkan
                 xmin, ymin, xmax, ymax, confidence, class_id = map(float, det)
 
+                # Warna berdasarkan class
+                # 0, 0, 255 ( Merah ) -> berlubang
+                # 235, 229, 52 ( Biru muda ) -> retak_buaya
+                # 3, 154, 255 ( orange ) -> retak_panjang
+                color = [(0, 0, 255) , (235, 229, 52), (3, 154, 255)]
+
                 # Mengubah confidance menjadi percent & mengambil lebar serta keliling box
                 confidence_percent = int(confidence * 100)
-                width = xmax - xmin
-                perimeter = 2 * (xmax - xmin) + 2 * (ymax - ymin)
+                wide = xmax - xmin
 
                 # Jika confidence lebih dari 50 maka buatkan rentacle
                 if confidence_percent >= 50:
                     # Tambahkan object confidence kearray detect untuk menghithung
                     # jumlah yang terderteksi
-                    detected.append(confidence_percent)
+                    detected.append(f'{model.names[int(class_id)]} - {confidence_percent}%')
 
                     # Konversi nilai kordinat float menjadi integer
                     xmin, ymin, xmax, ymax = map(int, [xmin, ymin, xmax, ymax])
@@ -77,10 +82,10 @@ if os.path.exists(video_path.strip()):
                     cv2.rectangle(frame_with_boxes, (center_x - rect_size, center_y - rect_size),(center_x + rect_size, center_y + rect_size), color=(0, 255, 81), thickness=cv2.FILLED)
 
                     # Buat gambar untuk background informasi box
-                    cv2.rectangle(frame_with_boxes, (xmin, ymin - 20), (xmax, ymin), color=(0, 0, 255), thickness=cv2.FILLED)
+                    cv2.rectangle(frame_with_boxes, (xmin, ymin - 20), (xmax, ymin), color=(color[int(class_id)]), thickness=cv2.FILLED)
 
-                    # Buat gambar untuk box berdasarkan titik kordinat
-                    cv2.rectangle(frame_with_boxes, (xmin, ymin), (xmax, ymax), color=(0, 0, 255), thickness=2)
+                    # Buat gambar box berdasarkan titik kordinat
+                    cv2.rectangle(frame_with_boxes, (xmin, ymin), (xmax, ymax), color=(color[int(class_id)]), thickness=2)
                     
                     # Buat tulisan class dan confidence yang terdeteksi
                     cv2.putText(frame_with_boxes, f'{model.names[int(class_id)]} {confidence_percent}%', (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)

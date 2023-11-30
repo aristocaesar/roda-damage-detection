@@ -49,7 +49,7 @@ def close_connection(connection):
 # Menyimpan gambar, titik kordinat pada database
 def store_object_and_cordinate(**args):
     # Inisialisasi id dan folder
-    id = str(int(time.time()))
+    id = str(int(time.time() * 1000))
     file_dir_path = os.path.join(realtime_result_path, f'detect_{id}')
     os.makedirs(file_dir_path)
 
