@@ -3,23 +3,43 @@
 
 const int rxPin = D2;
 const int txPin = D1;
+const int ledPin = LED_BUILTIN;
 
 TinyGPSPlus gps;
 SoftwareSerial ss(rxPin, txPin);
 
 void setup() {
-  Serial.begin(9600); // Inisialisasi komunikasi serial dengan baud rate 9600
-  ss.begin(9600); // Inisialisasi komunikasi serial dengan GPS
+  Serial.begin(9600);
+  ss.begin(9600);
 
-  Serial.println("Mengambil Titik Koordinat GPS...");
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
 }
- 
+
 void loop() {
-  if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    if (command == "GET_COORDINATE") {
-      String coordinate = "-8.159085,113.721818";
-      Serial.println(String(coordinate));
+  while (ss.available() > 0) {
+    char c = ss.read();
+    if (c == '\n') {
+      getCoordinate();
+    } else {
+      gps.encode(c);
+    }
+  }
+
+  if (gps.location.isUpdated()) {
+    digitalWrite(ledPin, !digitalRead(ledPin));
+  }
+}
+
+void getCoordinate() {
+  String command = Serial.readStringUntil('\n');
+
+  if (command == "GET_COORDINATE") {
+    if (gps.location.isValid()) {
+      String coordinates = String(gps.location.lat(), 6) + "," + String(gps.location.lng(), 6);
+      Serial.println(coordinates);
+    } else {
+      Serial.println("GPS data not valid.");
     }
   }
 }
